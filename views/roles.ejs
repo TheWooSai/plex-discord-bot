@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plex Discord Bot - Role Mappings</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav>
+    <a href="/">Dashboard</a>
+    <a href="/roles">Role Mappings</a>
+    <a href="/logout">Logout</a>
+  </nav>
+  <main>
+    <h1>Role to Library Mappings</h1>
+    
+    <h2>Current Mappings</h2>
+    <% if (mappings.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Discord Role</th>
+            <th>Plex Library</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% mappings.forEach(mapping => { %>
+            <tr>
+              <td><%= mapping.discord_role_name %></td>
+              <td><%= mapping.plex_library_name %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>No mappings configured yet.</p>
+    <% } %>
+    
+    <h2>Add Mapping</h2>
+    <form action="/roles" method="POST">
+      <label>Discord Role ID:</label>
+      <input type="text" name="role_id" required>
+      
+      <label>Discord Role Name:</label>
+      <input type="text" name="role_name" required>
+      
+      <label>Plex Libraries:</label>
+      <select name="library_ids" multiple required>
+        <% libraries.forEach(lib => { %>
+          <option value="<%= lib.key %>"><%= lib.title %></option>
+        <% }) %>
+      </select>
+      
+      <button type="submit">Save</button>
+    </form>
+  </main>
+</body>
+</html>
