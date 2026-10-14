@@ -4,10 +4,27 @@ const session = require('express-session');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const axios = require('axios');
+const fs = require('fs');
 const { passport, ensureAuthenticated } = require('./auth');
 const DiscordBot = require('./bot');
 const { initPlex, getPlexClient } = require('./sync');
 const db = require('./database');
+
+// Logging setup
+const logFile = path.join(__dirname, '..', 'data', 'app.log');
+const dataDir = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+function log(message) {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] ${message}\n`;
+  fs.appendFileSync(logFile, logMessage);
+  console.log(message);
+}
+
+log('Server starting...');
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -205,6 +222,7 @@ app.post('/plex-setup', ensureSetupComplete, ensureAuthenticated, async (req, re
 
 // Plex OAuth setup route
 app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+  log('Plex OAuth: Requesting PIN from Plex...');
   try {
     // Request a PIN from Plex
     const response = await axios.post('https://plex.tv/api/v2/pins', null, {
@@ -221,6 +239,7 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
     });
     
     const pinData = response.data;
+    log('Plex OAuth: PIN received: ' + pinData.code);
     
     // Store the PIN in the session for later verification
     req.session.plexPin = pinData.id;
@@ -231,8 +250,9 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
       url: pinData.web_redirect
     });
   } catch (err) {
-    console.error('Plex OAuth error:', err.response ? err.response.data : err.message);
-    res.render('plex-oauth', { error: 'Failed to request PIN: ' + (err.response ? err.response.data : err.message) });
+    const errorMessage = err.response ? err.response.data : err.message;
+    log('Plex OAuth error: ' + errorMessage);
+    res.render('plex-oauth', { error: 'Failed to request PIN: ' + errorMessage });
   }
 });
 
@@ -274,6 +294,20 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
   } catch (err) {
     console.error('Plex OAuth callback error:', err.response ? err.response.data : err.message);
     res.render('plex-oauth', { error: 'Failed to exchange code for token: ' + (err.response ? err.response.data : err.message) });
+  }
+});
+
+// Log viewer route
+app.get('/logs', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+  try {
+    if (fs.existsSync(logFile)) {
+      const logs = fs.readFileSync(logFile, 'utf-8');
+      res.render('logs', { logs });
+    } else {
+      res.render('logs', { logs: 'No log file found.' });
+    }
+  } catch (err) {
+    res.render('logs', { logs: 'Error reading log file: ' + err.message });
   }
 });
 

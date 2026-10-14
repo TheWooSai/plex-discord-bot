@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plex Discord Bot - Logs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Plex Discord Bot</h2>
+    <a href="/">Dashboard</a>
+    <a href="/roles">Role Mappings</a>
+    <a href="/plex-setup">Plex Integration</a>
+    <a href="/discord-setup">Discord Bot</a>
+    <a href="/logs" class="active">Logs</a>
+    <a href="/logout">Logout</a>
+  </div>
+  <main>
+    <h1>Application Logs</h1>
+    <div style="background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; max-height: 600px; overflow-y: auto;">
+      <pre><%= logs %></pre>
+    </div>
+  </main>
+</body>
+</html>
