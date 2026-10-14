@@ -258,6 +258,61 @@ docker-compose build --no-cache
 
 The Docker container persists data in the `./data` directory.
 
+## Unraid Deployment
+
+### Option 1: Using Community Applications
+
+1. Open the **Community Applications** plugin in Unraid
+2. Search for "plex-discord-bot" (or add the repository)
+3. Click **Install**
+4. Configure the container settings:
+   - **Container Name:** `plex-discord-bot`
+   - **Image:** `thewoosai/plex-discord-bot:latest` (or your custom image)
+   - **Network Mode:** `bridge`
+   - **Port:** `3000` (host) → `3000` (container)
+
+### Option 2: Manual Docker Run
+
+If you've built a custom image, run it manually:
+
+```bash
+docker run -d \
+  --name plex-discord-bot \
+  --restart=unless-stopped \
+  -p 3000:3000 \
+  -v /mnt/user/appdata/plex-discord-bot:/app/data \
+  -e DISCORD_TOKEN=your_token \
+  -e DISCORD_CLIENT_ID=your_client_id \
+  -e PLEX_TOKEN=your_plex_token \
+  -e PLEX_BASE_URL=http://localhost:32400 \
+  your-image-name:tag
+```
+
+### Unraid Container Configuration
+
+**Network:**
+- Network Mode: `bridge`
+- Port: `3000` (TCP)
+
+**Volumes:**
+- Host: `/mnt/user/appdata/plex-discord-bot`
+- Container: `/app/data`
+- Mode: `rw`
+
+**Environment Variables:**
+- `DISCORD_TOKEN`: Your Discord bot token
+- `DISCORD_CLIENT_ID`: Your Discord application ID
+- `PLEX_TOKEN`: Your Plex authentication token
+- `PLEX_BASE_URL`: Your Plex server URL (e.g., `http://localhost:32400`)
+- `ADMIN_USERNAME`: Admin username (optional, defaults to `admin`)
+- `ADMIN_PASSWORD`: Admin password (optional, defaults to `admin`)
+- `SESSION_SECRET`: Random session secret (optional)
+
+**Extra Parameters:**
+- `--restart=unless-stopped`
+
+After starting the container, access the web interface at `http://<unraid-ip>:3000`.
+
 ## Discord Commands
 
 | Command | Description |
