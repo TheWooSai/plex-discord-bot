@@ -140,6 +140,36 @@ app.post('/roles', ensureSetupComplete, ensureAuthenticated, async (req, res) =>
   res.redirect('/roles');
 });
 
+// Discord bot setup route
+app.get('/discord-setup', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+  res.render('discord-setup');
+});
+
+app.post('/discord-setup', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+  const { token, clientId } = req.body;
+  
+  if (!token || !clientId) {
+    return res.render('discord-setup', { error: 'Token and Client ID are required' });
+  }
+  
+  // Test the connection by trying to login
+  const { Client } = require('discord.js');
+  const testClient = new Client();
+  
+  try {
+    await testClient.login(token);
+    await testClient.destroy();
+    
+    // Save the configuration to environment (for this session)
+    process.env.DISCORD_TOKEN = token;
+    process.env.DISCORD_CLIENT_ID = clientId;
+    
+    res.render('discord-setup', { success: 'Discord bot connected successfully! Configuration saved.' });
+  } catch (err) {
+    res.render('discord-setup', { error: 'Failed to connect: ' + err.message });
+  }
+});
+
 // Start bot and server
 const bot = new DiscordBot(process.env.DISCORD_TOKEN, process.env.DISCORD_CLIENT_ID);
 bot.login().catch(err => {

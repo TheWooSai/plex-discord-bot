@@ -48,6 +48,60 @@ plex-discord-bot/
 - A Plex server with a valid token
 - Docker (optional, for containerized deployment)
 
+## Discord Bot Setup
+
+### Option 1: Web Setup Wizard
+
+After starting the application and logging in, visit the **Discord Setup** page in the web interface. The wizard will guide you through:
+
+1. Creating a Discord application
+2. Creating a bot user and getting your token
+3. Getting your client ID
+4. Inviting the bot to your server
+5. Testing the connection
+
+### Option 2: Manual Setup
+
+#### 1. Create a Discord Application
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click **New Application**
+3. Name your application (e.g., "Plex Bot")
+4. Click **Create**
+
+#### 2. Create a Bot User
+
+1. In your application, click **Bot** in the left sidebar
+2. Click **Reset Token** and copy the token
+3. Enable the **Server Members Intent** under Privileged Gateway Intents
+
+#### 3. Get Your Client ID
+
+1. Click **General Information** in the left sidebar
+2. Copy the **Application ID**
+
+#### 4. Invite the Bot to Your Server
+
+1. Click **OAuth2** in the left sidebar
+2. Under **OAuth2 URL Generator**, select these scopes:
+   - `bot`
+   - `applications.commands`
+3. Under **Bot Permissions**, select:
+   - `Manage Roles`
+   - `View Channels`
+   - `Send Messages`
+4. Copy the generated URL and open it in your browser
+5. Select your server and authorize
+
+#### 5. Configure Environment Variables
+
+Add your credentials to your `.env` file:
+
+```env
+DISCORD_TOKEN=your_bot_token_here
+DISCORD_CLIENT_ID=your_application_id_here
+```
+
 ## Setup
 
 ### 1. Clone the repository
