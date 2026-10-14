@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Plex Discord Bot - Discord Setup</title>
+  <title>Plex Discord Bot - Discord Bot</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <nav>
+  <div class="sidebar">
+    <h2>Plex Discord Bot</h2>
     <a href="/">Dashboard</a>
-    <a href="/discord-setup">Discord Setup</a>
+    <a href="/roles">Role Mappings</a>
+    <a href="/plex-setup">Plex Integration</a>
+    <a href="/discord-setup" class="active">Discord Bot</a>
     <a href="/logout">Logout</a>
-  </nav>
+  </div>
   <main>
-    <h1>Discord Bot Setup</h1>
+    <h1>Discord Bot</h1>
     
     <% if (typeof success !== 'undefined' && success) { %>
       <div class="success"><%= success %></div>
@@ -21,61 +24,71 @@
       <div class="error"><%= error %></div>
     <% } %>
     
-    <h2>Step 1: Create a Discord Application</h2>
-    <ol>
-      <li>Go to <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
-      <li>Click "New Application"</li>
-      <li>Name your application (e.g., "Plex Bot")</li>
-      <li>Click "Create"</li>
-    </ol>
+    <div class="wizard-step">
+      <h2>Step 1: Create a Discord Application</h2>
+      <ol>
+        <li>Go to <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+        <li>Click "New Application"</li>
+        <li>Name your application (e.g., "Plex Bot")</li>
+        <li>Click "Create"</li>
+      </ol>
+    </div>
     
-    <h2>Step 2: Create a Bot User</h2>
-    <ol>
-      <li>In your application, click "Bot" in the left sidebar</li>
-      <li>Click "Reset Token" and copy the token</li>
-      <li>Enable these Privileged Gateway Intents:
-        <ul>
-          <li>Server Members Intent</li>
-        </ul>
-      </li>
-    </ol>
+    <div class="wizard-step">
+      <h2>Step 2: Create a Bot User</h2>
+      <ol>
+        <li>In your application, click "Bot" in the left sidebar</li>
+        <li>Click "Reset Token" and copy the token</li>
+        <li>Enable these Privileged Gateway Intents:
+          <ul>
+            <li>Server Members Intent</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
     
-    <h2>Step 3: Get Your Client ID</h2>
-    <ol>
-      <li>Click "General Information" in the left sidebar</li>
-      <li>Copy the "Application ID"</li>
-    </ol>
+    <div class="wizard-step">
+      <h2>Step 3: Get Your Client ID</h2>
+      <ol>
+        <li>Click "General Information" in the left sidebar</li>
+        <li>Copy the "Application ID"</li>
+      </ol>
+    </div>
     
-    <h2>Step 4: Invite the Bot to Your Server</h2>
-    <ol>
-      <li>Click "OAuth2" in the left sidebar</li>
-      <li>Under "OAuth2 URL Generator", select these scopes:
-        <ul>
-          <li>bot</li>
-          <li>applications.commands</li>
-        </ul>
-      </li>
-      <li>Under "Bot Permissions", select:
-        <ul>
-          <li>Manage Roles</li>
-          <li>View Channels</li>
-          <li>Send Messages</li>
-        </ul>
-      </li>
-      <li>Copy the generated URL and open it in your browser</li>
-      <li>Select your server and authorize</li>
-    </ol>
+    <div class="wizard-step">
+      <h2>Step 4: Invite the Bot to Your Server</h2>
+      <ol>
+        <li>Click "OAuth2" in the left sidebar</li>
+        <li>Under "OAuth2 URL Generator", select these scopes:
+          <ul>
+            <li>bot</li>
+            <li>applications.commands</li>
+          </ul>
+        </li>
+        <li>Under "Bot Permissions", select:
+          <ul>
+            <li>Manage Roles</li>
+            <li>View Channels</li>
+            <li>Send Messages</li>
+          </ul>
+        </li>
+        <li>Copy the generated URL and open it in your browser</li>
+        <li>Select your server and authorize</li>
+      </ol>
+    </div>
     
-    <h2>Step 5: Enter Your Credentials</h2>
-    <form action="/discord-setup" method="POST">
-      <label>Bot Token:</label>
-      <input type="password" name="token" placeholder="Your Discord bot token" required>
-      
-      <label>Client ID:</label>
-      <input type="text" name="clientId" placeholder="Your Discord application ID" required>
-      
-      <button type="submit">Save and Test Connection</button>
-    </form>
+    <div class="wizard-step">
+      <h2>Step 5: Enter Your Credentials</h2>
+      <form action="/discord-setup" method="POST">
+        <label>Bot Token:</label>
+        <input type="password" name="token" placeholder="Your Discord bot token" required>
+        
+        <label>Client ID:</label>
+        <input type="text" name="clientId" placeholder="Your Discord application ID" required>
+        
+        <button type="submit">Save and Test Connection</button>
+      </form>
+    </div>
   </main>
 </body>
 </html>

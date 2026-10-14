@@ -5,11 +5,14 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <nav>
+  <div class="sidebar">
+    <h2>Plex Discord Bot</h2>
     <a href="/">Dashboard</a>
-    <a href="/plex-setup">Plex Setup</a>
+    <a href="/roles">Role Mappings</a>
+    <a href="/plex-setup" class="active">Plex Integration</a>
+    <a href="/discord-setup">Discord Bot</a>
     <a href="/logout">Logout</a>
-  </nav>
+  </div>
   <main>
     <h1>Plex OAuth Authentication</h1>
     
@@ -22,20 +25,25 @@
     <% } %>
     
     <% if (typeof pin !== 'undefined' && typeof url !== 'undefined') { %>
-      <h2>Step 1: Visit the Plex Authorization Page</h2>
-      <p>Click the link below to authorize this application to access your Plex account:</p>
-      <p><a href="<%= url %>" target="_blank" class="btn">Authorize on Plex</a></p>
+      <div class="wizard-step">
+        <h2>Step 1: Visit the Plex Authorization Page</h2>
+        <p>Click the link below to authorize this application to access your Plex account:</p>
+        <p><a href="<%= url %>" target="_blank" class="btn">Authorize on Plex</a></p>
+      </div>
       
-      <h2>Step 2: Enter the PIN</h2>
-      <p>Enter this PIN on the Plex authorization page:</p>
-      <div class="pin-display"><%= pin %></div>
-      
-      <p>After authorizing, you will be redirected back here automatically.</p>
+      <div class="wizard-step">
+        <h2>Step 2: Enter the PIN</h2>
+        <p>Enter this PIN on the Plex authorization page:</p>
+        <div class="pin-display"><%= pin %></div>
+        <p>After authorizing, you will be redirected back here automatically.</p>
+      </div>
     <% } else { %>
-      <p>Click the button below to start the Plex OAuth process:</p>
-      <form action="/plex-oauth" method="GET">
-        <button type="submit" class="btn">Connect with Plex</button>
-      </form>
+      <div class="wizard-step">
+        <p>Click the button below to start the Plex OAuth process:</p>
+        <form action="/plex-oauth" method="GET">
+          <button type="submit" class="btn">Connect with Plex</button>
+        </form>
+      </div>
     <% } %>
   </main>
 </body>
