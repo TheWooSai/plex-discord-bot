@@ -25,6 +25,21 @@
       <div class="error"><%= error %></div>
     <% } %>
     
+    <% if (typeof serverName !== 'undefined' && serverName) { %>
+      <div class="wizard-step">
+        <h2>Connected Server</h2>
+        <p><strong>Server:</strong> <%= serverName %></p>
+        <% if (typeof libraries !== 'undefined' && libraries.length > 0) { %>
+          <h3>Libraries</h3>
+          <ul>
+            <% libraries.forEach(function(lib) { %>
+              <li><%= lib.title %></li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+    <% } %>
+    
     <% if (typeof pin !== 'undefined' && typeof url !== 'undefined') { %>
       <div class="wizard-step">
         <h2>Step 1: Visit the Plex Authorization Page</h2>

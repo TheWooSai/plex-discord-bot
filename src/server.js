@@ -268,8 +268,10 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
   }
   
   try {
+    log('Plex OAuth: Exchanging code for token...');
+    
     // Exchange the code for a token
-    const response = await axios.get(`https://plex.tv/api/v2/pins/${code}/exchange`, {
+    const exchangeResponse = await axios.get(`https://plex.tv/api/v2/pins/${code}/exchange`, {
       headers: {
         'Accept': 'application/json',
         'X-Plex-Client-Identifier': 'plex-discord-bot',
@@ -280,25 +282,90 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
       }
     });
     
-    const token = response.data.auth_token;
+    log('Plex OAuth: Exchange response status: ' + exchangeResponse.status);
+    
+    const token = exchangeResponse.data.auth_token;
+    if (!token) {
+      throw new Error('No auth_token in exchange response');
+    }
+    
+    log('Plex OAuth: Token received');
     
     // Save the token
     process.env.PLEX_TOKEN = token;
     
-    // Test the connection
+    // Get user's Plex account info
+    log('Plex OAuth: Getting user account info...');
+    const meResponse = await axios.get('https://plex.tv/api/v2/me', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Plex-Token': token
+      }
+    });
+    
+    log('Plex OAuth: User account info received');
+    const user = meResponse.data;
+    log('Plex OAuth: User: ' + user.title);
+    
+    // Get user's resources (servers)
+    log('Plex OAuth: Getting user resources...');
+    const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Plex-Token': token
+      }
+    });
+    
+    log('Plex OAuth: Resources received');
+    const resources = resourcesResponse.data;
+    
+    // Find the first server
+    const servers = resources.filter(r => r.provider === 'com.plexapp.plugins.myplex');
+    if (servers.length === 0) {
+      return res.render('plex-oauth', { 
+        success: 'Plex authentication successful!', 
+        error: 'No Plex servers found for this account.' 
+      });
+    }
+    
+    const server = servers[0];
+    log('Plex OAuth: Found server: ' + server.name + ' at ' + server.baseURL);
+    
+    // Connect to the server and get libraries
     const PlexClient = require('./plex');
-    const testClient = new PlexClient(process.env.PLEX_BASE_URL || 'http://localhost:32400', token);
+    const plexClient = new PlexClient(server.baseURL, token);
     
     try {
-      const libraries = await testClient.getLibraries();
-      initPlex(process.env.PLEX_BASE_URL || 'http://localhost:32400', token);
-      res.render('plex-oauth', { success: `Connected to Plex server! Found ${libraries.length} library/libraries.` });
+      const libraries = await plexClient.getLibraries();
+      log('Plex OAuth: Found ' + libraries.length + ' libraries');
+      
+      // Initialize with the discovered server
+      initPlex(server.baseURL, token);
+      
+      // Store server info for later use
+      req.session.plexServer = {
+        name: server.name,
+        baseUrl: server.baseURL,
+        token: token
+      };
+      
+      res.render('plex-oauth', { 
+        success: `Connected to Plex server "${server.name}"! Found ${libraries.length} library/libraries.`,
+        serverName: server.name,
+        libraries: libraries
+      });
     } catch (err) {
-      res.render('plex-oauth', { success: 'Plex authentication successful!', error: 'Could not connect to Plex server: ' + err.message });
+      log('Plex OAuth error getting libraries: ' + err.message);
+      res.render('plex-oauth', { 
+        success: 'Plex authentication successful!', 
+        error: 'Could not connect to Plex server: ' + err.message 
+      });
     }
   } catch (err) {
-    console.error('Plex OAuth callback error:', err.response ? err.response.data : err.message);
-    res.render('plex-oauth', { error: 'Failed to exchange code for token: ' + (err.response ? err.response.data : err.message) });
+    log('Plex OAuth callback error: ' + (err.response ? err.response.data : err.message));
+    res.render('plex-oauth', { 
+      error: 'Failed to exchange code for token: ' + (err.response ? err.response.data : err.message) 
+    });
   }
 });
 
