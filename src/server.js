@@ -250,7 +250,7 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
     req.session.plexPinCode = pinData.code;
     
     // Construct the web redirect URL (Plex API doesn't always provide it)
-    const webRedirectUrl = 'https://plex.tv/';
+    const webRedirectUrl = 'https://www.plex.tv/link/';
     
     log('Plex OAuth: Rendering PIN page with PIN: ' + pinData.code + ' and URL: ' + webRedirectUrl);
     
