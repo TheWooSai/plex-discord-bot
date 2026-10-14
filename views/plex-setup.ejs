@@ -26,38 +26,8 @@
     <% } %>
     
     <div class="wizard-step">
-      <h2>Step 1: Get Your Plex Token</h2>
-      <ol>
-        <li>Go to <a href="https://plex.tv/settings" target="_blank">Plex Settings</a></li>
-        <li>Click on your profile name in the top right</li>
-        <li>Click "Account"</li>
-        <li>Find "Authentication Token" and click "Show"</li>
-        <li>Copy the token</li>
-      </ol>
-    </div>
-    
-    <div class="wizard-step">
-      <h2>Step 2: Find Your Plex Server URL</h2>
-      <p>If your Plex server is on the same machine as this bot, use: <code>http://localhost:32400</code></p>
-      <p>If it's on a different machine, use: <code>http://server-ip:32400</code></p>
-    </div>
-    
-    <div class="wizard-step">
-      <h2>Step 3: Enter Your Credentials</h2>
-      <form action="/plex-setup" method="POST">
-        <label>Plex Server URL:</label>
-        <input type="text" name="baseUrl" value="http://localhost:32400" placeholder="http://localhost:32400" required>
-        
-        <label>Plex Token:</label>
-        <input type="password" name="token" placeholder="Your Plex authentication token" required>
-        
-        <button type="submit">Save and Test Connection</button>
-      </form>
-    </div>
-    
-    <div class="wizard-step">
-      <h3>Or use Plex OAuth</h3>
-      <p>Instead of manually entering a token, you can authenticate directly through Plex:</p>
+      <h2>Connect with Plex</h2>
+      <p>Click the button below to authenticate with Plex and connect your server:</p>
       <a href="/plex-oauth" class="btn">Connect with Plex OAuth</a>
     </div>
   </main>

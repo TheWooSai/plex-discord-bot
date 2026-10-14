@@ -193,33 +193,6 @@ app.get('/plex-setup', ensureSetupComplete, ensureAuthenticated, (req, res) => {
   res.render('plex-setup');
 });
 
-app.post('/plex-setup', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
-  const { baseUrl, token } = req.body;
-  
-  if (!baseUrl || !token) {
-    return res.render('plex-setup', { error: 'Base URL and Token are required' });
-  }
-  
-  // Test the connection by trying to fetch libraries
-  const PlexClient = require('./plex');
-  const testClient = new PlexClient(baseUrl, token);
-  
-  try {
-    const libraries = await testClient.getLibraries();
-    
-    // Save the configuration to environment (for this session)
-    process.env.PLEX_BASE_URL = baseUrl;
-    process.env.PLEX_TOKEN = token;
-    
-    // Re-initialize the Plex client with the new credentials
-    initPlex(baseUrl, token);
-    
-    res.render('plex-setup', { success: `Connected to Plex server! Found ${libraries.length} library/libraries.` });
-  } catch (err) {
-    res.render('plex-setup', { error: 'Failed to connect: ' + err.message });
-  }
-});
-
 // Plex OAuth setup route
 app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
   log('Plex OAuth: Requesting PIN from Plex...');
