@@ -230,6 +230,7 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
         strong: false
       },
       headers: {
+        'Accept': 'application/json',
         'X-Plex-Client-Identifier': 'plex-discord-bot',
         'X-Plex-Product': 'Plex Discord Bot',
         'X-Plex-Version': '1.0.0',
@@ -270,6 +271,7 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
     // Exchange the code for a token
     const response = await axios.get(`https://plex.tv/api/v2/pins/${code}/exchange`, {
       headers: {
+        'Accept': 'application/json',
         'X-Plex-Client-Identifier': 'plex-discord-bot',
         'X-Plex-Product': 'Plex Discord Bot',
         'X-Plex-Version': '1.0.0',
