@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plex Discord Bot - Select Server</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Plex Discord Bot</h2>
+    <a href="/">Dashboard</a>
+    <a href="/roles">Role Mappings</a>
+    <a href="/plex-setup" class="active">Plex Integration</a>
+    <a href="/discord-setup">Discord Bot</a>
+    <a href="/logs">Logs</a>
+    <a href="/logout">Logout</a>
+  </div>
+  <main>
+    <h1>Select Plex Server</h1>
+    
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+    
+    <p>You have multiple Plex servers. Please select one to connect:</p>
+    
+    <form action="/plex-libraries" method="GET">
+      <label for="server">Select Server:</label>
+      <select name="server" id="server" required>
+        <option value="">-- None --</option>
+        <% servers.forEach(function(server) { %>
+          <option value="<%= server.id %>"><%= server.name %></option>
+        <% }); %>
+      </select>
+      <button type="submit">Select Server</button>
+    </form>
+  </main>
+</body>
+</html>

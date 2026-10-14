@@ -297,7 +297,7 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
     log('Plex OAuth: Resources received');
     const resources = resourcesResponse.data;
     
-    // Find the first server
+    // Find servers
     const servers = resources.filter(r => r.provider === 'com.plexapp.plugins.myplex');
     if (servers.length === 0) {
       return res.render('plex-oauth', { 
@@ -306,45 +306,120 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
       });
     }
     
-    const server = servers[0];
-    log('Plex OAuth: Found server: ' + server.name + ' at ' + server.baseURL);
+    // Store servers and token in session
+    req.session.plexToken = token;
+    req.session.plexServers = servers;
     
-    // Connect to the server and get libraries
-    const PlexClient = require('./plex');
-    const plexClient = new PlexClient(server.baseURL, token);
-    
-    try {
-      const libraries = await plexClient.getLibraries();
-      log('Plex OAuth: Found ' + libraries.length + ' libraries');
+    // If only one server, auto-select it
+    if (servers.length === 1) {
+      const server = servers[0];
+      log('Plex OAuth: Auto-selecting single server: ' + server.name);
       
-      // Initialize with the discovered server
-      initPlex(server.baseURL, token);
-      
-      // Store server info for later use
-      req.session.plexServer = {
-        name: server.name,
-        baseUrl: server.baseURL,
-        token: token
-      };
-      
-      res.render('plex-oauth', { 
-        success: `Connected to Plex server "${server.name}"! Found ${libraries.length} library/libraries.`,
-        serverName: server.name,
-        libraries: libraries
-      });
-    } catch (err) {
-      log('Plex OAuth error getting libraries: ' + err.message);
-      res.render('plex-oauth', { 
-        success: 'Plex authentication successful!', 
-        error: 'Could not connect to Plex server: ' + err.message 
-      });
+      // Redirect to library selection with the server pre-selected
+      return res.redirect('/plex-libraries?server=' + encodeURIComponent(server.id));
     }
+    
+    // Multiple servers - show server selection page
+    log('Plex OAuth: Showing server selection for ' + servers.length + ' servers');
+    res.render('plex-server-select', { servers: servers });
   } catch (err) {
     log('Plex OAuth callback error: ' + (err.response ? err.response.data : err.message));
     res.render('plex-oauth', { 
       error: 'Failed to exchange code for token: ' + (err.response ? err.response.data : err.message) 
     });
   }
+});
+
+// Server selection route
+app.get('/plex-server-select', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+  const servers = req.session.plexServers;
+  if (!servers || servers.length === 0) {
+    return res.redirect('/plex-oauth');
+  }
+  res.render('plex-server-select', { servers: servers });
+});
+
+// Library selection route
+app.get('/plex-libraries', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+  const serverId = req.query.server;
+  const servers = req.session.plexServers;
+  const token = req.session.plexToken;
+  
+  if (!serverId || !servers || !token) {
+    return res.redirect('/plex-oauth');
+  }
+  
+  // Find the selected server
+  const server = servers.find(s => s.id === serverId);
+  if (!server) {
+    return res.render('plex-server-select', { servers: servers, error: 'Invalid server selected' });
+  }
+  
+  log('Plex OAuth: Getting libraries for server: ' + server.name);
+  
+  try {
+    // Connect to the server and get libraries
+    const PlexClient = require('./plex');
+    const plexClient = new PlexClient(server.baseURL, token);
+    
+    const libraries = await plexClient.getLibraries();
+    log('Plex OAuth: Found ' + libraries.length + ' libraries');
+    
+    // Initialize with the discovered server
+    initPlex(server.baseURL, token);
+    
+    // Store server info for later use
+    req.session.plexServer = {
+      name: server.name,
+      id: server.id,
+      baseUrl: server.baseURL,
+      token: token
+    };
+    
+    res.render('plex-libraries', { 
+      server: server,
+      libraries: libraries,
+      servers: servers
+    });
+  } catch (err) {
+    log('Plex OAuth error getting libraries: ' + err.message);
+    res.render('plex-server-select', { 
+      servers: servers,
+      error: 'Could not connect to Plex server: ' + err.message 
+    });
+  }
+});
+
+// Save library settings route
+app.post('/plex-libraries/save', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+  const { serverId } = req.body;
+  const servers = req.session.plexServers;
+  
+  if (!serverId || !servers) {
+    return res.redirect('/plex-oauth');
+  }
+  
+  // Find the selected server
+  const server = servers.find(s => s.id === serverId);
+  if (!server) {
+    return res.render('plex-server-select', { servers: servers, error: 'Invalid server selected' });
+  }
+  
+  log('Plex OAuth: Saving library settings for server: ' + server.name);
+  
+  // Process the library settings
+  // For now, just log them
+  const librarySettings = {};
+  for (const [key, value] of Object.entries(req.body)) {
+    if (key.startsWith('managed_') || key.startsWith('do_not_add_') || key.startsWith('do_not_remove_')) {
+      librarySettings[key] = value === 'on';
+    }
+  }
+  
+  log('Plex OAuth: Library settings: ' + JSON.stringify(librarySettings));
+  
+  // Redirect back to the library page with success message
+  res.redirect('/plex-libraries?server=' + encodeURIComponent(serverId) + '&saved=true');
 });
 
 // Log viewer route
