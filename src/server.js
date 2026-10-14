@@ -3,6 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const bcrypt = require('bcrypt');
+const axios = require('axios');
 const { passport, ensureAuthenticated } = require('./auth');
 const DiscordBot = require('./bot');
 const { initPlex, getPlexClient } = require('./sync');
