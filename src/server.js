@@ -207,11 +207,17 @@ app.post('/plex-setup', ensureSetupComplete, ensureAuthenticated, async (req, re
 app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
   try {
     // Request a PIN from Plex
-    const response = await axios.post('https://plex.tv/api/v2/pins', {
-      strong: false,
-      client_identifier: 'plex-discord-bot',
-      product: 'Plex Discord Bot',
-      redirect_uri: `${req.protocol}://${req.get('host')}/plex-oauth/callback`
+    const response = await axios.post('https://plex.tv/api/v2/pins', null, {
+      params: {
+        strong: false
+      },
+      headers: {
+        'X-Plex-Client-Identifier': 'plex-discord-bot',
+        'X-Plex-Product': 'Plex Discord Bot',
+        'X-Plex-Version': '1.0.0',
+        'X-Plex-Device': 'Web',
+        'X-Plex-Device-Name': 'Plex Discord Bot'
+      }
     });
     
     const pinData = response.data;
@@ -225,7 +231,8 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
       url: pinData.web_redirect
     });
   } catch (err) {
-    res.render('plex-oauth', { error: 'Failed to request PIN: ' + err.message });
+    console.error('Plex OAuth error:', err.response ? err.response.data : err.message);
+    res.render('plex-oauth', { error: 'Failed to request PIN: ' + (err.response ? err.response.data : err.message) });
   }
 });
 
@@ -239,9 +246,12 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
   try {
     // Exchange the code for a token
     const response = await axios.get(`https://plex.tv/api/v2/pins/${code}/exchange`, {
-      params: {
-        client_identifier: 'plex-discord-bot',
-        product: 'Plex Discord Bot'
+      headers: {
+        'X-Plex-Client-Identifier': 'plex-discord-bot',
+        'X-Plex-Product': 'Plex Discord Bot',
+        'X-Plex-Version': '1.0.0',
+        'X-Plex-Device': 'Web',
+        'X-Plex-Device-Name': 'Plex Discord Bot'
       }
     });
     
@@ -262,7 +272,8 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
       res.render('plex-oauth', { success: 'Plex authentication successful!', error: 'Could not connect to Plex server: ' + err.message });
     }
   } catch (err) {
-    res.render('plex-oauth', { error: 'Failed to exchange code for token: ' + err.message });
+    console.error('Plex OAuth callback error:', err.response ? err.response.data : err.message);
+    res.render('plex-oauth', { error: 'Failed to exchange code for token: ' + (err.response ? err.response.data : err.message) });
   }
 });
 
