@@ -238,6 +238,9 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
       }
     });
     
+    log('Plex OAuth: Response status: ' + response.status);
+    log('Plex OAuth: Response data: ' + JSON.stringify(response.data));
+    
     const pinData = response.data;
     log('Plex OAuth: PIN received: ' + pinData.code);
     
