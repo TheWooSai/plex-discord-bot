@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plex Discord Bot - Plex Setup</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav>
+    <a href="/">Dashboard</a>
+    <a href="/plex-setup">Plex Setup</a>
+    <a href="/logout">Logout</a>
+  </nav>
+  <main>
+    <h1>Plex Server Setup</h1>
+    
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="success"><%= success %></div>
+    <% } %>
+    
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+    
+    <h2>Step 1: Get Your Plex Token</h2>
+    <ol>
+      <li>Go to <a href="https://plex.tv/settings" target="_blank">Plex Settings</a></li>
+      <li>Click on your profile name in the top right</li>
+      <li>Click "Account"</li>
+      <li>Find "Authentication Token" and click "Show"</li>
+      <li>Copy the token</li>
+    </ol>
+    
+    <h2>Step 2: Find Your Plex Server URL</h2>
+    <p>If your Plex server is on the same machine as this bot, use: <code>http://localhost:32400</code></p>
+    <p>If it's on a different machine, use: <code>http://server-ip:32400</code></p>
+    
+    <h2>Step 3: Enter Your Credentials</h2>
+    <form action="/plex-setup" method="POST">
+      <label>Plex Server URL:</label>
+      <input type="text" name="baseUrl" value="http://localhost:32400" placeholder="http://localhost:32400" required>
+      
+      <label>Plex Token:</label>
+      <input type="password" name="token" placeholder="Your Plex authentication token" required>
+      
+      <button type="submit">Save and Test Connection</button>
+    </form>
+  </main>
+</body>
+</html>

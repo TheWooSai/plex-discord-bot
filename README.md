@@ -102,6 +102,41 @@ DISCORD_TOKEN=your_bot_token_here
 DISCORD_CLIENT_ID=your_application_id_here
 ```
 
+## Plex Server Setup
+
+### Option 1: Web Setup Wizard
+
+After starting the application and logging in, visit the **Plex Setup** page in the web interface. The wizard will guide you through:
+
+1. Getting your Plex authentication token
+2. Finding your Plex server URL
+3. Testing the connection
+4. Verifying library access
+
+### Option 2: Manual Setup
+
+#### 1. Get Your Plex Token
+
+1. Go to [Plex Settings](https://plex.tv/settings)
+2. Click on your profile name in the top right
+3. Click **Account**
+4. Find **Authentication Token** and click **Show**
+5. Copy the token
+
+#### 2. Find Your Plex Server URL
+
+- If your Plex server is on the same machine as this bot: `http://localhost:32400`
+- If it's on a different machine: `http://server-ip:32400`
+
+#### 3. Configure Environment Variables
+
+Add your Plex credentials to your `.env` file:
+
+```env
+PLEX_BASE_URL=http://localhost:32400
+PLEX_TOKEN=your_plex_token_here
+```
+
 ## Setup
 
 ### 1. Clone the repository
