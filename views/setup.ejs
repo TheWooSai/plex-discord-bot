@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plex Discord Bot - Setup</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Plex Discord Bot</h1>
+    <h2>First-Time Setup</h2>
+    <p>Create an admin account to get started.</p>
+    
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+    
+    <form action="/setup" method="POST">
+      <label>Username:</label>
+      <input type="text" name="username" placeholder="Admin username" required>
+      
+      <label>Password:</label>
+      <input type="password" name="password" placeholder="Password (min 6 characters)" required>
+      
+      <label>Confirm Password:</label>
+      <input type="password" name="passwordConfirm" placeholder="Confirm password" required>
+      
+      <button type="submit">Create Admin Account</button>
+    </form>
+  </div>
+</body>
+</html>

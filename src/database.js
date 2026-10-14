@@ -1,7 +1,6 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
-const bcrypt = require('bcrypt');
 
 const dataDir = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(dataDir)) {
@@ -37,15 +36,5 @@ db.exec(`
     password_hash TEXT NOT NULL
   );
 `);
-
-// Create initial admin user if it doesn't exist
-const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
-const existingAdmin = db.prepare('SELECT * FROM admin_users WHERE username = ?').get(adminUsername);
-if (!existingAdmin) {
-  const passwordHash = bcrypt.hashSync(adminPassword, 10);
-  db.prepare('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)').run(adminUsername, passwordHash);
-  console.log('Created initial admin user:', adminUsername);
-}
 
 module.exports = db;
