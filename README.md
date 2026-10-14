@@ -188,17 +188,72 @@ The web interface will be available at `http://localhost:3000`.
 
 ## Docker Deployment
 
-### Build and run with Docker Compose
+### Option 1: Build and run with Docker Compose
 
 ```bash
+# Clone the repository
+git clone https://github.com/TheWooSai/test1014.git
+cd test1014
+
+# Create .env file
+cp .env.example .env
+# Edit .env with your credentials
+
+# Build and run
 docker-compose up -d
 ```
 
-### Build the image manually
+The application will be available at `http://localhost:3000`.
+
+### Option 2: Build the image manually
 
 ```bash
+# Clone the repository
+git clone https://github.com/TheWooSai/test1014.git
+cd test1014
+
+# Build the Docker image
 docker build -t plex-discord-bot .
-docker run -p 3000:3000 --env-file .env plex-discord-bot
+
+# Run the container
+docker run -d \
+  --name plex-discord-bot \
+  -p 3000:3000 \
+  --env-file .env \
+  -v $(pwd)/data:/app/data \
+  plex-discord-bot
+```
+
+### Docker Compose with Custom Configuration
+
+```yaml
+version: '3'
+services:
+  plex-discord-bot:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+```
+
+### Useful Docker Commands
+
+```bash
+# View logs
+docker logs plex-discord-bot
+
+# Restart the container
+docker restart plex-discord-bot
+
+# Stop and remove the container
+docker-compose down
+
+# Rebuild the image
+docker-compose build --no-cache
 ```
 
 The Docker container persists data in the `./data` directory.
