@@ -113,6 +113,8 @@ After starting the application and logging in, visit the **Plex Setup** page in 
 3. Testing the connection
 4. Verifying library access
 
+You can also use **Plex OAuth** for automatic token retrieval - just click "Connect with Plex OAuth" on the setup page.
+
 ### Option 2: Manual Setup
 
 #### 1. Get Your Plex Token

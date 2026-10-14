@@ -202,6 +202,69 @@ app.post('/plex-setup', ensureSetupComplete, ensureAuthenticated, async (req, re
   }
 });
 
+// Plex OAuth setup route
+app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+  try {
+    // Request a PIN from Plex
+    const response = await axios.post('https://plex.tv/api/v2/pins', {
+      strong: false,
+      client_identifier: 'plex-discord-bot',
+      product: 'Plex Discord Bot',
+      redirect_uri: `${req.protocol}://${req.get('host')}/plex-oauth/callback`
+    });
+    
+    const pinData = response.data;
+    
+    // Store the PIN in the session for later verification
+    req.session.plexPin = pinData.id;
+    req.session.plexPinCode = pinData.code;
+    
+    res.render('plex-oauth', {
+      pin: pinData.code,
+      url: pinData.web_redirect
+    });
+  } catch (err) {
+    res.render('plex-oauth', { error: 'Failed to request PIN: ' + err.message });
+  }
+});
+
+app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+  const { code } = req.query;
+  
+  if (!code) {
+    return res.render('plex-oauth', { error: 'No authorization code received' });
+  }
+  
+  try {
+    // Exchange the code for a token
+    const response = await axios.get(`https://plex.tv/api/v2/pins/${code}/exchange`, {
+      params: {
+        client_identifier: 'plex-discord-bot',
+        product: 'Plex Discord Bot'
+      }
+    });
+    
+    const token = response.data.auth_token;
+    
+    // Save the token
+    process.env.PLEX_TOKEN = token;
+    
+    // Test the connection
+    const PlexClient = require('./plex');
+    const testClient = new PlexClient(process.env.PLEX_BASE_URL || 'http://localhost:32400', token);
+    
+    try {
+      const libraries = await testClient.getLibraries();
+      initPlex(process.env.PLEX_BASE_URL || 'http://localhost:32400', token);
+      res.render('plex-oauth', { success: `Connected to Plex server! Found ${libraries.length} library/libraries.` });
+    } catch (err) {
+      res.render('plex-oauth', { success: 'Plex authentication successful!', error: 'Could not connect to Plex server: ' + err.message });
+    }
+  } catch (err) {
+    res.render('plex-oauth', { error: 'Failed to exchange code for token: ' + err.message });
+  }
+});
+
 // Start bot and server
 const bot = new DiscordBot(process.env.DISCORD_TOKEN, process.env.DISCORD_CLIENT_ID);
 bot.login().catch(err => {
