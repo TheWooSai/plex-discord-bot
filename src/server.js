@@ -299,7 +299,38 @@ app.post('/discord-setup', ensureSetupComplete, ensureAuthenticated, async (req,
 });
 
 // Plex server setup route
-app.get('/plex-setup', ensureAuthenticated, (req, res) => {
+app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
+  // If we have a valid Plex token, redirect to library selection
+  if (hasValidPlexToken()) {
+    try {
+      const token = getPlexToken();
+      const meResponse = await axios.get('https://plex.tv/api/v2/user', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Plex-Token': token
+        }
+      });
+      
+      const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Plex-Token': token
+        }
+      });
+      
+      const resources = resourcesResponse.data;
+      const servers = resources.filter(r => r.provides === 'server' && r.ownerId === meResponse.data.id);
+      
+      if (servers.length > 0) {
+        // Redirect to library selection with the first server
+        return res.redirect('/plex-libraries?server=' + encodeURIComponent(servers[0].id));
+      }
+    } catch (err) {
+      // Token is invalid or expired, fall through to setup page
+      log('Plex token validation failed: ' + err.message);
+    }
+  }
+  
   res.render('plex-setup');
 });
 
