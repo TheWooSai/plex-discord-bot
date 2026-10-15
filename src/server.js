@@ -303,7 +303,7 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
   // If we have a valid Plex token, redirect to library selection
   if (hasValidPlexToken()) {
     try {
-      const token = getPlexToken();
+      const token = loadPlexToken();
       const meResponse = await axios.get('https://plex.tv/api/v2/user', {
         headers: {
           'Accept': 'application/json',
