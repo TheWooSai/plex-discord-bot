@@ -299,12 +299,12 @@ app.post('/discord-setup', ensureSetupComplete, ensureAuthenticated, async (req,
 });
 
 // Plex server setup route
-app.get('/plex-setup', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+app.get('/plex-setup', ensureAuthenticated, (req, res) => {
   res.render('plex-setup');
 });
 
 // Plex OAuth setup route
-app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+app.get('/plex-oauth', ensureAuthenticated, async (req, res) => {
   log('Plex OAuth: Requesting PIN from Plex...');
   try {
     // Request a PIN from Plex
@@ -349,7 +349,7 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
 });
 
 // Poll for PIN authorization
-app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+app.get('/plex-oauth/poll', ensureAuthenticated, async (req, res) => {
   const pinId = req.session.plexPin;
   
   if (!pinId) {
@@ -454,7 +454,7 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
   }
 });
 
-app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+app.get('/plex-oauth/callback', ensureAuthenticated, async (req, res) => {
   const { code } = req.query;
   
   if (!code) {
@@ -553,7 +553,7 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
 });
 
 // Server selection route
-app.get('/plex-server-select', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+app.get('/plex-server-select', ensureAuthenticated, (req, res) => {
   const servers = req.session.plexServers;
   if (!servers || servers.length === 0) {
     return res.redirect('/plex-oauth');
@@ -562,7 +562,7 @@ app.get('/plex-server-select', ensureSetupComplete, ensureAuthenticated, (req, r
 });
 
 // Library selection route
-app.get('/plex-libraries', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+app.get('/plex-libraries', ensureAuthenticated, async (req, res) => {
   const serverId = req.query.server;
   const servers = req.session.plexServers;
   const token = req.session.plexToken;
@@ -613,7 +613,7 @@ app.get('/plex-libraries', ensureSetupComplete, ensureAuthenticated, async (req,
 });
 
 // Save library settings route
-app.post('/plex-libraries/save', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+app.post('/plex-libraries/save', ensureAuthenticated, (req, res) => {
   const { serverId } = req.body;
   const servers = req.session.plexServers;
   
