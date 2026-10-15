@@ -167,6 +167,11 @@ app.post('/setup', async (req, res) => {
     return res.redirect('/');
   }
   
+  // If admin user already exists but no Plex token, redirect to Plex OAuth
+  if (hasAdminUser()) {
+    return res.redirect('/plex-oauth');
+  }
+  
   const { username, password, passwordConfirm } = req.body;
   
   if (!username || !password) {
