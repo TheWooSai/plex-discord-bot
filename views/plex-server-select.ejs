@@ -22,7 +22,11 @@
       <div class="error"><%= error %></div>
     <% } %>
     
-    <p>You have multiple Plex servers. Please select one to connect:</p>
+    <% if (servers.length === 1) { %>
+      <p>You have one Plex server. Please confirm:</p>
+    <% } else { %>
+      <p>You have multiple Plex servers. Please select one to connect:</p>
+    <% } %>
     
     <form action="/plex-libraries" method="GET">
       <label for="server">Select Server:</label>
