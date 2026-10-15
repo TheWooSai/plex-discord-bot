@@ -156,14 +156,14 @@ initPlex(process.env.PLEX_BASE_URL, process.env.PLEX_TOKEN);
 
 // Setup route (first-run wizard)
 app.get('/setup', (req, res) => {
-  if (hasAdminUser()) {
+  if (hasAdminUser() && hasValidPlexToken()) {
     return res.redirect('/');
   }
   res.render('setup');
 });
 
 app.post('/setup', async (req, res) => {
-  if (hasAdminUser()) {
+  if (hasAdminUser() && hasValidPlexToken()) {
     return res.redirect('/');
   }
   
