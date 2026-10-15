@@ -333,6 +333,11 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
       const resources = resourcesResponse.data;
       log('Plex setup: Resources count: ' + resources.length);
       
+      // Debug: Log all resources to see their structure
+      resources.forEach((r, i) => {
+        log('Plex setup: Resource ' + i + ' - name: ' + r.name + ', provides: ' + r.provides + ', ownerId: ' + r.ownerId + ' (type: ' + typeof r.ownerId + ')');
+      });
+      
       const servers = resources.filter(r => r.provides === 'server' && r.ownerId === meResponse.data.id);
       log('Plex setup: Owned servers count: ' + servers.length);
       
