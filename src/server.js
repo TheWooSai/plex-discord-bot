@@ -261,6 +261,7 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
     });
     
     const pinData = response.data;
+    log('Plex OAuth: Poll response: ' + JSON.stringify(pinData));
     log('Plex OAuth: Poll response status: ' + pinData.status);
     
     if (pinData.status === 'ready') {
@@ -341,7 +342,7 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
     
     return res.json({ status: 'pending' });
   } catch (err) {
-    log('Plex OAuth poll error: ' + (err.response ? err.response.data : err.message));
+    log('Plex OAuth poll error: ' + JSON.stringify(err.response ? err.response.data : err.message));
     return res.json({ status: 'error', message: err.message });
   }
 });
