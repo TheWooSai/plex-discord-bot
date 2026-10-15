@@ -290,7 +290,8 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
       const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
         headers: {
           'Accept': 'application/json',
-          'X-Plex-Token': token
+          'X-Plex-Token': token,
+          'X-Plex-Client-Identifier': 'plex-discord-bot'
         }
       });
       
@@ -382,7 +383,8 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
     const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
       headers: {
         'Accept': 'application/json',
-        'X-Plex-Token': token
+        'X-Plex-Token': token,
+        'X-Plex-Client-Identifier': 'plex-discord-bot'
       }
     });
     
