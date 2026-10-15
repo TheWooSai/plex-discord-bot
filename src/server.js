@@ -343,6 +343,10 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
       log('Plex setup: Owned servers count: ' + servers.length);
       
       if (servers.length > 0) {
+        // Store servers and token in session
+        req.session.plexToken = token;
+        req.session.plexServers = servers;
+        
         // Redirect to library selection with the first server
         log('Plex setup: Redirecting to library selection');
         return res.redirect('/plex-libraries?server=' + encodeURIComponent(servers[0].id));
