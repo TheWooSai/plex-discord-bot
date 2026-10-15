@@ -699,8 +699,8 @@ app.post('/plex-libraries/save', ensureAuthenticated, (req, res) => {
     return res.redirect('/plex-oauth');
   }
   
-  // Find the selected server
-  const server = servers.find(s => s.id === serverId);
+  // Find the selected server (use clientIdentifier for owned servers)
+  const server = servers.find(s => s.clientIdentifier === serverId || s.id === serverId);
   if (!server) {
     return res.render('plex-server-select', { servers: servers, error: 'Invalid server selected' });
   }
