@@ -628,12 +628,16 @@ app.get('/plex-libraries', ensureAuthenticated, async (req, res) => {
   const servers = req.session.plexServers;
   const token = req.session.plexToken;
   
+  log('Plex libraries: serverId=' + serverId + ', servers=' + (servers ? servers.length : 'null') + ', token=' + (token ? 'set' : 'null'));
+  
   if (!serverId || !servers || !token) {
+    log('Plex libraries: Missing required data, redirecting to /plex-oauth');
     return res.redirect('/plex-oauth');
   }
   
   // Find the selected server
   const server = servers.find(s => s.id === serverId);
+  log('Plex libraries: Found server=' + (server ? server.name : 'null'));
   if (!server) {
     return res.render('plex-server-select', { servers: servers, error: 'Invalid server selected' });
   }
