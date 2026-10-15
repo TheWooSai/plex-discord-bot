@@ -338,7 +338,8 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
         log('Plex setup: Resource ' + i + ' - name: ' + r.name + ', provides: ' + r.provides + ', ownerId: ' + r.ownerId + ' (type: ' + typeof r.ownerId + ')');
       });
       
-      const servers = resources.filter(r => r.provides === 'server' && r.ownerId === meResponse.data.id);
+      // Filter for owned servers (ownerId matches user ID or is null)
+      const servers = resources.filter(r => r.provides === 'server' && (r.ownerId === meResponse.data.id || r.ownerId === null));
       log('Plex setup: Owned servers count: ' + servers.length);
       
       if (servers.length > 0) {
