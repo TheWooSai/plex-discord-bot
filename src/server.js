@@ -654,9 +654,13 @@ app.get('/plex-libraries', ensureAuthenticated, async (req, res) => {
   log('Plex OAuth: Getting libraries for server: ' + server.name);
   
   try {
+    // Use the first connection URI as the base URL
+    const baseUrl = server.connections[0].uri;
+    log('Plex OAuth: Using base URL: ' + baseUrl);
+    
     // Connect to the server and get libraries
     const PlexClient = require('./plex');
-    const plexClient = new PlexClient(server.baseURL, token);
+    const plexClient = new PlexClient(baseUrl, token);
     
     const libraries = await plexClient.getLibraries();
     log('Plex OAuth: Found ' + libraries.length + ' libraries');
