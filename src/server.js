@@ -352,12 +352,13 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
         req.session.plexToken = token;
         req.session.plexServers = servers;
         
-        // Debug: Log the server ID
-        log('Plex setup: Server ID=' + servers[0].id + ', name=' + servers[0].name);
+        // Use clientIdentifier as server ID (owned servers don't have an id field)
+        const serverId = servers[0].clientIdentifier || servers[0].id;
+        log('Plex setup: Server ID=' + serverId + ', name=' + servers[0].name);
         
         // Redirect to library selection with the first server
         log('Plex setup: Redirecting to library selection');
-        return res.redirect('/plex-libraries?server=' + encodeURIComponent(servers[0].id));
+        return res.redirect('/plex-libraries?server=' + encodeURIComponent(serverId));
       }
     } catch (err) {
       // Token is invalid or expired, fall through to setup page
@@ -643,8 +644,8 @@ app.get('/plex-libraries', ensureAuthenticated, async (req, res) => {
     return res.redirect('/plex-oauth');
   }
   
-  // Find the selected server
-  const server = servers.find(s => s.id === serverId);
+  // Find the selected server (use clientIdentifier for owned servers)
+  const server = servers.find(s => s.clientIdentifier === serverId || s.id === serverId);
   log('Plex libraries: Found server=' + (server ? server.name : 'null'));
   if (!server) {
     return res.render('plex-server-select', { servers: servers, error: 'Invalid server selected' });
