@@ -262,29 +262,12 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
     
     const pinData = response.data;
     log('Plex OAuth: Poll response: ' + JSON.stringify(pinData));
-    log('Plex OAuth: Poll response status: ' + pinData.status);
     
-    if (pinData.status === 'ready') {
-      // PIN has been authorized, exchange for token
-      log('Plex OAuth: PIN authorized, exchanging for token...');
+    if (pinData.authToken) {
+      // PIN has been authorized, we have the token directly
+      log('Plex OAuth: PIN authorized, token received');
       
-      const exchangeResponse = await axios.get(`https://plex.tv/api/v2/pins/${pinId}/exchange`, {
-        headers: {
-          'Accept': 'application/json',
-          'X-Plex-Client-Identifier': 'plex-discord-bot',
-          'X-Plex-Product': 'Plex Discord Bot',
-          'X-Plex-Version': '1.0.0',
-          'X-Plex-Device': 'Web',
-          'X-Plex-Device-Name': 'Plex Discord Bot'
-        }
-      });
-      
-      const token = exchangeResponse.data.auth_token;
-      if (!token) {
-        throw new Error('No auth_token in exchange response');
-      }
-      
-      log('Plex OAuth: Token received');
+      const token = pinData.authToken;
       
       // Save the token
       process.env.PLEX_TOKEN = token;
@@ -336,7 +319,7 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
       // Multiple servers - redirect to server selection page
       log('Plex OAuth: Redirecting to server selection for ' + servers.length + ' servers');
       return res.json({ status: 'success', redirect: '/plex-server-select' });
-    } else if (pinData.status === 'expired') {
+    } else if (pinData.expiresIn <= 0) {
       return res.json({ status: 'expired' });
     }
     
