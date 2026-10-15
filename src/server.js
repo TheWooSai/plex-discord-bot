@@ -11,11 +11,70 @@ const { initPlex, getPlexClient } = require('./sync');
 const db = require('./database');
 
 // Logging setup
-const logFile = path.join(__dirname, '..', 'data', 'app.log');
-const dataDir = path.join(__dirname, '..', 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const logDir = path.join(__dirname, '..', 'logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
 }
+
+// Log rotation settings
+const settingsFile = path.join(__dirname, '..', 'data', 'settings.json');
+let maxLogSize = 1024 * 1024; // Default: 1MB
+
+function loadSettings() {
+  try {
+    if (fs.existsSync(settingsFile)) {
+      const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf-8'));
+      if (settings.maxLogSize) {
+        maxLogSize = settings.maxLogSize;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load settings:', err);
+  }
+}
+
+function saveSettings(settings) {
+  try {
+    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+  } catch (err) {
+    console.error('Failed to save settings:', err);
+  }
+}
+
+loadSettings();
+
+function rotateLogs() {
+  try {
+    const logFiles = fs.readdirSync(logDir)
+      .filter(f => f.startsWith('app-') && f.endsWith('.log'))
+      .sort();
+    
+    // Keep only the most recent logs within the size limit
+    let totalSize = 0;
+    for (const file of logFiles) {
+      const filePath = path.join(logDir, file);
+      const stats = fs.statSync(filePath);
+      totalSize += stats.size;
+    }
+    
+    // If total size exceeds max, delete oldest logs
+    while (totalSize > maxLogSize && logFiles.length > 1) {
+      const oldestFile = logFiles.shift();
+      const filePath = path.join(logDir, oldestFile);
+      const stats = fs.statSync(filePath);
+      fs.unlinkSync(filePath);
+      totalSize -= stats.size;
+      console.log('Rotated log file:', oldestFile);
+    }
+  } catch (err) {
+    console.error('Failed to rotate logs:', err);
+  }
+}
+
+// Rotate logs on startup
+rotateLogs();
+
+const logFile = path.join(logDir, `app-${new Date().toISOString().split('T')[0]}.log`);
 
 function log(message) {
   const timestamp = new Date().toISOString();
@@ -305,8 +364,11 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
         log('Plex OAuth: First resource name: ' + (resources[0].name || 'none'));
       }
       
-      // Find servers
-      const servers = resources.filter(r => r.provider === 'com.plexapp.plugins.myplex');
+      // Find servers - filter by product name or server property
+      const servers = resources.filter(r => 
+        r.product === 'Plex Media Server' || 
+        (r.server && r.provider === 'com.plexapp.plugins.myplex')
+      );
       log('Plex OAuth: Found ' + servers.length + ' Plex servers');
       if (servers.length === 0) {
         return res.json({ status: 'no_servers' });
@@ -399,8 +461,11 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
     log('Plex OAuth: Resources received');
     const resources = resourcesResponse.data;
     
-    // Find servers
-    const servers = resources.filter(r => r.provider === 'com.plexapp.plugins.myplex');
+    // Find servers - filter by product name or server property
+    const servers = resources.filter(r => 
+      r.product === 'Plex Media Server' || 
+      (r.server && r.provider === 'com.plexapp.plugins.myplex')
+    );
     if (servers.length === 0) {
       return res.render('plex-oauth', { 
         success: 'Plex authentication successful!', 
@@ -524,14 +589,43 @@ app.post('/plex-libraries/save', ensureSetupComplete, ensureAuthenticated, (req,
   res.redirect('/plex-libraries?server=' + encodeURIComponent(serverId) + '&saved=true');
 });
 
+// Settings route
+app.get('/settings', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+  const settings = {
+    maxLogSizeMB: Math.round(maxLogSize / (1024 * 1024))
+  };
+  res.render('settings', { settings });
+});
+
+app.post('/settings', ensureSetupComplete, ensureAuthenticated, (req, res) => {
+  const { maxLogSizeMB } = req.body;
+  
+  if (!maxLogSizeMB || maxLogSizeMB < 1) {
+    return res.render('settings', { 
+      settings: { maxLogSizeMB: Math.round(maxLogSize / (1024 * 1024)) },
+      error: 'Invalid max log size'
+    });
+  }
+  
+  maxLogSize = maxLogSizeMB * 1024 * 1024;
+  saveSettings({ maxLogSize: maxLogSize });
+  
+  res.render('settings', { 
+    settings: { maxLogSizeMB: parseInt(maxLogSizeMB) },
+    success: 'Settings saved successfully'
+  });
+});
+
 // Log viewer route
 app.get('/logs', ensureSetupComplete, ensureAuthenticated, (req, res) => {
   try {
-    if (fs.existsSync(logFile)) {
-      const logs = fs.readFileSync(logFile, 'utf-8');
+    // Show today's log
+    const todayLog = path.join(logDir, `app-${new Date().toISOString().split('T')[0]}.log`);
+    if (fs.existsSync(todayLog)) {
+      const logs = fs.readFileSync(todayLog, 'utf-8');
       res.render('logs', { logs });
     } else {
-      res.render('logs', { logs: 'No log file found.' });
+      res.render('logs', { logs: 'No log file found for today.' });
     }
   } catch (err) {
     res.render('logs', { logs: 'Error reading log file: ' + err.message });

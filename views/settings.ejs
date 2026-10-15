@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plex Discord Bot - Settings</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Plex Discord Bot</h2>
+    <a href="/">Dashboard</a>
+    <a href="/roles">Role Mappings</a>
+    <a href="/plex-setup">Plex Integration</a>
+    <a href="/discord-setup">Discord Bot</a>
+    <a href="/settings" class="active">Settings</a>
+    <a href="/logs">Logs</a>
+    <a href="/logout">Logout</a>
+  </div>
+  <main>
+    <h1>Settings</h1>
+    
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="success"><%= success %></div>
+    <% } %>
+    
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+    
+    <form action="/settings" method="POST">
+      <div class="form-group">
+        <label>Max Log Size (MB):</label>
+        <input type="number" name="maxLogSizeMB" value="<%= settings.maxLogSizeMB %>" min="1" max="100">
+        <p class="help">Logs older than this total size will be automatically deleted on server restart.</p>
+      </div>
+      
+      <button type="submit">Save Settings</button>
+    </form>
+  </main>
+</body>
+</html>
