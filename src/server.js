@@ -711,8 +711,9 @@ app.post('/plex-libraries/save', ensureAuthenticated, (req, res) => {
   // For now, just log them
   const librarySettings = {};
   for (const [key, value] of Object.entries(req.body)) {
-    if (key.startsWith('managed_') || key.startsWith('do_not_add_') || key.startsWith('do_not_remove_')) {
-      librarySettings[key] = value === 'on';
+    if (key.startsWith('role_')) {
+      const libraryKey = key.substring(5);
+      librarySettings[libraryKey] = value;
     }
   }
   

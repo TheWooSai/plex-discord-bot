@@ -25,24 +25,25 @@
     <div class="success">Connected to Plex server "<%= server.name %>"!</div>
     
     <form action="/plex-libraries/save" method="POST">
-      <input type="hidden" name="serverId" value="<%= server.id %>">
+      <input type="hidden" name="serverId" value="<%= server.clientIdentifier || server.id %>">
       
       <table class="library-table">
         <thead>
           <tr>
             <th>Library</th>
-            <th>Managed</th>
-            <th>Do Not Add</th>
-            <th>Do Not Remove</th>
+            <th>Role Assignment</th>
           </tr>
         </thead>
         <tbody>
           <% libraries.forEach(function(lib) { %>
             <tr>
               <td><%= lib.title %></td>
-              <td><input type="checkbox" name="managed_<%= lib.key %>" checked></td>
-              <td><input type="checkbox" name="do_not_add_<%= lib.key %>"></td>
-              <td><input type="checkbox" name="do_not_remove_<%= lib.key %>"></td>
+              <td>
+                <label><input type="radio" name="role_<%= lib.key %>" value="managed" checked> Managed</label><br>
+                <label><input type="radio" name="role_<%= lib.key %>" value="do_not_add"> Do Not Add</label><br>
+                <label><input type="radio" name="role_<%= lib.key %>" value="do_not_remove"> Do Not Remove</label><br>
+                <label><input type="radio" name="role_<%= lib.key %>" value="do_not_add_remove"> Do Not Add/Remove</label>
+              </td>
             </tr>
           <% }); %>
         </tbody>
