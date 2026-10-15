@@ -74,7 +74,7 @@ function rotateLogs() {
 // Rotate logs on startup
 rotateLogs();
 
-const logFile = path.join(logDir, `app-${new Date().toISOString().split('T')[0]}.log`);
+const logFile = path.join(logDir, `app-${new Date().toISOString().replace(/[:.]/g, '-')}.log`);
 
 function log(message) {
   const timestamp = new Date().toISOString();
@@ -364,12 +364,12 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
         log('Plex OAuth: First resource name: ' + (resources[0].name || 'none'));
       }
       
-      // Find servers - filter by product name or server property
+      // Find servers - filter by product name, owned status, and provider
       const servers = resources.filter(r => 
-        r.product === 'Plex Media Server' || 
-        (r.server && r.provider === 'com.plexapp.plugins.myplex')
+        (r.product === 'Plex Media Server' || (r.server && r.provider === 'com.plexapp.plugins.myplex')) &&
+        r.owned === true
       );
-      log('Plex OAuth: Found ' + servers.length + ' Plex servers');
+      log('Plex OAuth: Found ' + servers.length + ' Plex servers (owned only)');
       if (servers.length === 0) {
         return res.json({ status: 'no_servers' });
       }
@@ -461,10 +461,10 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
     log('Plex OAuth: Resources received');
     const resources = resourcesResponse.data;
     
-    // Find servers - filter by product name or server property
+    // Find servers - filter by product name, owned status, and provider
     const servers = resources.filter(r => 
-      r.product === 'Plex Media Server' || 
-      (r.server && r.provider === 'com.plexapp.plugins.myplex')
+      (r.product === 'Plex Media Server' || (r.server && r.provider === 'com.plexapp.plugins.myplex')) &&
+      r.owned === true
     );
     if (servers.length === 0) {
       return res.render('plex-oauth', { 
