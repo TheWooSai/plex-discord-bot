@@ -16,8 +16,14 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
+// Data directory
+const dataDir = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
 // Log rotation settings
-const settingsFile = path.join(__dirname, '..', 'data', 'settings.json');
+const settingsFile = path.join(dataDir, 'settings.json');
 let maxLogSize = 1024 * 1024; // Default: 1MB
 
 function loadSettings() {
@@ -83,6 +89,40 @@ function log(message) {
   console.log(message);
 }
 
+// Persistent Plex token storage
+const plexTokenFile = path.join(dataDir, 'plex-token.json');
+
+function loadPlexToken() {
+  try {
+    if (fs.existsSync(plexTokenFile)) {
+      const data = JSON.parse(fs.readFileSync(plexTokenFile, 'utf-8'));
+      return data.token;
+    }
+  } catch (err) {
+    console.error('Failed to load Plex token:', err);
+  }
+  return null;
+}
+
+function savePlexToken(token) {
+  try {
+    fs.writeFileSync(plexTokenFile, JSON.stringify({ token: token }, null, 2));
+  } catch (err) {
+    console.error('Failed to save Plex token:', err);
+  }
+}
+
+function hasValidPlexToken() {
+  return !!loadPlexToken();
+}
+
+// Load existing token on startup
+const existingToken = loadPlexToken();
+if (existingToken) {
+  process.env.PLEX_TOKEN = existingToken;
+  log('Loaded existing Plex token from file');
+}
+
 log('Server starting...');
 
 const app = express();
@@ -105,9 +145,9 @@ function hasAdminUser() {
   return !!admin;
 }
 
-// Redirect to setup if no admin user exists
+// Redirect to setup if no admin user exists or no valid Plex token
 function ensureSetupComplete(req, res, next) {
-  if (hasAdminUser()) return next();
+  if (hasAdminUser() && hasValidPlexToken()) return next();
   res.redirect('/setup');
 }
 
@@ -330,6 +370,8 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
       
       // Save the token
       process.env.PLEX_TOKEN = token;
+      savePlexToken(token);
+      log('Plex OAuth: Token saved to file');
       
       // Get user's Plex account info
       log('Plex OAuth: Getting user account info...');
@@ -434,6 +476,8 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
     
     // Save the token
     process.env.PLEX_TOKEN = token;
+    savePlexToken(token);
+    log('Plex OAuth: Token saved to file');
     
     // Get user's Plex account info
     log('Plex OAuth: Getting user account info...');
@@ -619,13 +663,18 @@ app.post('/settings', ensureSetupComplete, ensureAuthenticated, (req, res) => {
 // Log viewer route
 app.get('/logs', ensureSetupComplete, ensureAuthenticated, (req, res) => {
   try {
-    // Show today's log
-    const todayLog = path.join(logDir, `app-${new Date().toISOString().split('T')[0]}.log`);
-    if (fs.existsSync(todayLog)) {
-      const logs = fs.readFileSync(todayLog, 'utf-8');
+    // Find the most recent log file
+    const logFiles = fs.readdirSync(logDir)
+      .filter(f => f.startsWith('app-') && f.endsWith('.log'))
+      .sort()
+      .reverse();
+    
+    if (logFiles.length > 0) {
+      const latestLog = path.join(logDir, logFiles[0]);
+      const logs = fs.readFileSync(latestLog, 'utf-8');
       res.render('logs', { logs });
     } else {
-      res.render('logs', { logs: 'No log file found for today.' });
+      res.render('logs', { logs: 'No log files found.' });
     }
   } catch (err) {
     res.render('logs', { logs: 'Error reading log file: ' + err.message });
