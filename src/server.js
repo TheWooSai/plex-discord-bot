@@ -298,8 +298,16 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
       log('Plex OAuth: Resources received');
       const resources = resourcesResponse.data;
       
+      // Log resources for debugging
+      log('Plex OAuth: Resources count: ' + (Array.isArray(resources) ? resources.length : 'not array'));
+      if (Array.isArray(resources) && resources.length > 0) {
+        log('Plex OAuth: First resource provider: ' + (resources[0].provider || 'none'));
+        log('Plex OAuth: First resource name: ' + (resources[0].name || 'none'));
+      }
+      
       // Find servers
       const servers = resources.filter(r => r.provider === 'com.plexapp.plugins.myplex');
+      log('Plex OAuth: Found ' + servers.length + ' Plex servers');
       if (servers.length === 0) {
         return res.json({ status: 'no_servers' });
       }
