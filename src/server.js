@@ -304,12 +304,16 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
   if (hasValidPlexToken()) {
     try {
       const token = loadPlexToken();
+      log('Plex setup: Validating token...');
+      
       const meResponse = await axios.get('https://plex.tv/api/v2/user', {
         headers: {
           'Accept': 'application/json',
           'X-Plex-Token': token
         }
       });
+      
+      log('Plex setup: Token validated, user: ' + meResponse.data.title);
       
       const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
         headers: {
@@ -323,11 +327,16 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
       
       if (servers.length > 0) {
         // Redirect to library selection with the first server
+        log('Plex setup: Redirecting to library selection');
         return res.redirect('/plex-libraries?server=' + encodeURIComponent(servers[0].id));
       }
     } catch (err) {
       // Token is invalid or expired, fall through to setup page
       log('Plex token validation failed: ' + err.message);
+      if (err.response) {
+        log('Plex token validation response status: ' + err.response.status);
+        log('Plex token validation response data: ' + JSON.stringify(err.response.data));
+      }
     }
   }
   
