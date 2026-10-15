@@ -274,7 +274,7 @@ app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req
       
       // Get user's Plex account info
       log('Plex OAuth: Getting user account info...');
-      const meResponse = await axios.get('https://plex.tv/api/v2/me', {
+      const meResponse = await axios.get('https://plex.tv/api/v2/user', {
         headers: {
           'Accept': 'application/json',
           'X-Plex-Token': token
@@ -366,7 +366,7 @@ app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async 
     
     // Get user's Plex account info
     log('Plex OAuth: Getting user account info...');
-    const meResponse = await axios.get('https://plex.tv/api/v2/me', {
+    const meResponse = await axios.get('https://plex.tv/api/v2/user', {
       headers: {
         'Accept': 'application/json',
         'X-Plex-Token': token
