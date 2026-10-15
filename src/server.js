@@ -342,6 +342,11 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
       const servers = resources.filter(r => r.provides === 'server' && r.owned === true);
       log('Plex setup: Owned servers count: ' + servers.length);
       
+      // Debug: Log the full structure of the owned server
+      if (servers.length > 0) {
+        log('Plex setup: Owned server object: ' + JSON.stringify(servers[0]));
+      }
+      
       if (servers.length > 0) {
         // Store servers and token in session
         req.session.plexToken = token;
