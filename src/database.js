@@ -35,6 +35,15 @@ db.exec(`
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS library_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    server_id TEXT NOT NULL,
+    library_key INTEGER NOT NULL,
+    library_name TEXT NOT NULL,
+    role_assignment TEXT NOT NULL DEFAULT 'managed',
+    UNIQUE(server_id, library_key)
+  );
 `);
 
 module.exports = db;

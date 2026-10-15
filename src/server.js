@@ -708,7 +708,6 @@ app.post('/plex-libraries/save', ensureAuthenticated, (req, res) => {
   log('Plex OAuth: Saving library settings for server: ' + server.name);
   
   // Process the library settings
-  // For now, just log them
   const librarySettings = {};
   for (const [key, value] of Object.entries(req.body)) {
     if (key.startsWith('role_')) {
@@ -718,6 +717,22 @@ app.post('/plex-libraries/save', ensureAuthenticated, (req, res) => {
   }
   
   log('Plex OAuth: Library settings: ' + JSON.stringify(librarySettings));
+  
+  // Save settings to database
+  const db = require('./database');
+  
+  // Clear existing settings for this server
+  db.exec('DELETE FROM library_settings WHERE server_id = ?', [serverId]);
+  
+  // Insert new settings
+  const insertStmt = db.prepare('INSERT OR REPLACE INTO library_settings (server_id, library_key, library_name, role_assignment) VALUES (?, ?, ?, ?)');
+  for (const lib of libraries) {
+    const role = librarySettings[lib.key] || 'managed';
+    insertStmt.run(serverId, lib.key, lib.title, role);
+  }
+  insertStmt.finalize();
+  
+  log('Plex OAuth: Library settings saved to database');
   
   // Redirect back to the library page with success message
   res.redirect('/plex-libraries?server=' + encodeURIComponent(serverId) + '&saved=true');

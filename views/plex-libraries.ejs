@@ -39,10 +39,10 @@
             <tr>
               <td><%= lib.title %></td>
               <td>
-                <label><input type="radio" name="role_<%= lib.key %>" value="managed" checked> Managed</label><br>
-                <label><input type="radio" name="role_<%= lib.key %>" value="do_not_add"> Do Not Add</label><br>
-                <label><input type="radio" name="role_<%= lib.key %>" value="do_not_remove"> Do Not Remove</label><br>
-                <label><input type="radio" name="role_<%= lib.key %>" value="do_not_add_remove"> Do Not Add/Remove</label>
+                <label class="role-option"><input type="radio" name="role_<%= lib.key %>" value="managed" checked> Managed</label>
+                <label class="role-option"><input type="radio" name="role_<%= lib.key %>" value="do_not_add"> Do Not Add</label>
+                <label class="role-option"><input type="radio" name="role_<%= lib.key %>" value="do_not_remove"> Do Not Remove</label>
+                <label class="role-option"><input type="radio" name="role_<%= lib.key %>" value="do_not_add_remove"> Do Not Add/Remove</label>
               </td>
             </tr>
           <% }); %>

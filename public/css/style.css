@@ -141,3 +141,14 @@ th {
   border-radius: 8px;
   margin: 1rem 0;
 }
+
+.role-option {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 1rem;
+  white-space: nowrap;
+}
+
+.role-option input[type="radio"] {
+  margin-right: 0.25rem;
+}
