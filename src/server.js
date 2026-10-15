@@ -318,7 +318,12 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
       const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
         headers: {
           'Accept': 'application/json',
-          'X-Plex-Token': token
+          'X-Plex-Token': token,
+          'X-Plex-Client-Identifier': 'plex-discord-bot',
+          'X-Plex-Product': 'Plex Discord Bot',
+          'X-Plex-Version': '1.0.0',
+          'X-Plex-Device': 'Web',
+          'X-Plex-Device-Name': 'Plex Discord Bot'
         }
       });
       
