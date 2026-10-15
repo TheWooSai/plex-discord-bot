@@ -314,7 +314,9 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
       });
       
       log('Plex setup: Token validated, user: ' + meResponse.data.title);
+      log('Plex setup: User ID: ' + meResponse.data.id);
       
+      log('Plex setup: Fetching resources...');
       const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
         headers: {
           'Accept': 'application/json',
@@ -327,8 +329,12 @@ app.get('/plex-setup', ensureAuthenticated, async (req, res) => {
         }
       });
       
+      log('Plex setup: Resources fetched');
       const resources = resourcesResponse.data;
+      log('Plex setup: Resources count: ' + resources.length);
+      
       const servers = resources.filter(r => r.provides === 'server' && r.ownerId === meResponse.data.id);
+      log('Plex setup: Owned servers count: ' + servers.length);
       
       if (servers.length > 0) {
         // Redirect to library selection with the first server
