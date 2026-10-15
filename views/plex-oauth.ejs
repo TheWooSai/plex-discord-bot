@@ -25,21 +25,6 @@
       <div class="error"><%= error %></div>
     <% } %>
     
-    <% if (typeof serverName !== 'undefined' && serverName) { %>
-      <div class="wizard-step">
-        <h2>Connected Server</h2>
-        <p><strong>Server:</strong> <%= serverName %></p>
-        <% if (typeof libraries !== 'undefined' && libraries.length > 0) { %>
-          <h3>Libraries</h3>
-          <ul>
-            <% libraries.forEach(function(lib) { %>
-              <li><%= lib.title %></li>
-            <% }); %>
-          </ul>
-        <% } %>
-      </div>
-    <% } %>
-    
     <% if (typeof pin !== 'undefined' && typeof url !== 'undefined') { %>
       <div class="wizard-step">
         <h2>Step 1: Visit the Plex Authorization Page</h2>
@@ -51,7 +36,7 @@
         <h2>Step 2: Enter the PIN</h2>
         <p>Enter this PIN on the Plex authorization page:</p>
         <div class="pin-display"><%= pin %></div>
-        <p>After authorizing, you will be redirected back here automatically.</p>
+        <p id="poll-status">Waiting for authorization...</p>
       </div>
     <% } else { %>
       <div class="wizard-step">
@@ -60,5 +45,40 @@
       </div>
     <% } %>
   </main>
+  
+  <% if (typeof pin !== 'undefined') { %>
+  <script>
+    let polling = true;
+    
+    function pollAuthorization() {
+      if (!polling) return;
+      
+      fetch('/plex-oauth/poll')
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            document.getElementById('poll-status').textContent = 'Authorized! Redirecting...';
+            window.location.href = data.redirect;
+          } else if (data.status === 'expired') {
+            document.getElementById('poll-status').textContent = 'PIN expired. Please try again.';
+            polling = false;
+          } else if (data.status === 'error') {
+            document.getElementById('poll-status').textContent = 'Error: ' + data.message;
+            polling = false;
+          } else {
+            // Still pending
+            setTimeout(pollAuthorization, 2000);
+          }
+        })
+        .catch(err => {
+          console.error('Poll error:', err);
+          setTimeout(pollAuthorization, 2000);
+        });
+    }
+    
+    // Start polling
+    setTimeout(pollAuthorization, 2000);
+  </script>
+  <% } %>
 </body>
 </html>

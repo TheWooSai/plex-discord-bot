@@ -238,6 +238,114 @@ app.get('/plex-oauth', ensureSetupComplete, ensureAuthenticated, async (req, res
   }
 });
 
+// Poll for PIN authorization
+app.get('/plex-oauth/poll', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
+  const pinId = req.session.plexPin;
+  
+  if (!pinId) {
+    return res.json({ status: 'no_pin' });
+  }
+  
+  try {
+    log('Plex OAuth: Polling for PIN authorization...');
+    
+    const response = await axios.get(`https://plex.tv/api/v2/pins/${pinId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Plex-Client-Identifier': 'plex-discord-bot',
+        'X-Plex-Product': 'Plex Discord Bot',
+        'X-Plex-Version': '1.0.0',
+        'X-Plex-Device': 'Web',
+        'X-Plex-Device-Name': 'Plex Discord Bot'
+      }
+    });
+    
+    const pinData = response.data;
+    log('Plex OAuth: Poll response status: ' + pinData.status);
+    
+    if (pinData.status === 'ready') {
+      // PIN has been authorized, exchange for token
+      log('Plex OAuth: PIN authorized, exchanging for token...');
+      
+      const exchangeResponse = await axios.get(`https://plex.tv/api/v2/pins/${pinId}/exchange`, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Plex-Client-Identifier': 'plex-discord-bot',
+          'X-Plex-Product': 'Plex Discord Bot',
+          'X-Plex-Version': '1.0.0',
+          'X-Plex-Device': 'Web',
+          'X-Plex-Device-Name': 'Plex Discord Bot'
+        }
+      });
+      
+      const token = exchangeResponse.data.auth_token;
+      if (!token) {
+        throw new Error('No auth_token in exchange response');
+      }
+      
+      log('Plex OAuth: Token received');
+      
+      // Save the token
+      process.env.PLEX_TOKEN = token;
+      
+      // Get user's Plex account info
+      log('Plex OAuth: Getting user account info...');
+      const meResponse = await axios.get('https://plex.tv/api/v2/me', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Plex-Token': token
+        }
+      });
+      
+      log('Plex OAuth: User account info received');
+      const user = meResponse.data;
+      log('Plex OAuth: User: ' + user.title);
+      
+      // Get user's resources (servers)
+      log('Plex OAuth: Getting user resources...');
+      const resourcesResponse = await axios.get('https://plex.tv/api/v2/resources', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Plex-Token': token
+        }
+      });
+      
+      log('Plex OAuth: Resources received');
+      const resources = resourcesResponse.data;
+      
+      // Find servers
+      const servers = resources.filter(r => r.provider === 'com.plexapp.plugins.myplex');
+      if (servers.length === 0) {
+        return res.json({ status: 'no_servers' });
+      }
+      
+      // Store servers and token in session
+      req.session.plexToken = token;
+      req.session.plexServers = servers;
+      
+      // If only one server, auto-select it
+      if (servers.length === 1) {
+        const server = servers[0];
+        log('Plex OAuth: Auto-selecting single server: ' + server.name);
+        
+        // Redirect to library selection with the server pre-selected
+        return res.json({ status: 'success', redirect: '/plex-libraries?server=' + encodeURIComponent(server.id) });
+      }
+      
+      // Multiple servers - redirect to server selection page
+      log('Plex OAuth: Redirecting to server selection for ' + servers.length + ' servers');
+      return res.json({ status: 'success', redirect: '/plex-server-select' });
+    } else if (pinData.status === 'expired') {
+      return res.json({ status: 'expired' });
+    }
+    
+    return res.json({ status: 'pending' });
+  } catch (err) {
+    log('Plex OAuth poll error: ' + (err.response ? err.response.data : err.message));
+    return res.json({ status: 'error', message: err.message });
+  }
+});
+
 app.get('/plex-oauth/callback', ensureSetupComplete, ensureAuthenticated, async (req, res) => {
   const { code } = req.query;
   
